@@ -1,0 +1,66 @@
+#include <stdio.h>
+#include <stdlib.h>
+int wrt=1, mutex=1, readcount=0;
+void signale(int s){
+    s++;
+}
+void waite(int s){
+    while (s<=0)
+        ;
+    s--;
+}
+
+void write(){
+    if ((wrt==1)&&(mutex==1)&&(readcount<=0)){
+        printf("writing\n");
+        wrt=0;
+        mutex=0;
+    }
+    else if (readcount>0){
+        printf("A reader is inside. Writer not allowed\n");
+        signale(mutex);
+    }
+    else{
+        printf("A writer is already inside. Another writer not allowed.\n");
+        signale(mutex);
+    }
+}
+void read(){
+    if (mutex==1 && wrt==1){
+        readcount++;
+        printf("%d readers are currently reading\n",readcount);
+    }
+    else if (wrt==0){
+        printf("Writer is currently inside. Reading not allowed\n");
+    }
+}
+int main() {
+    wrt = 1;
+    mutex =1;
+    readcount = 0;
+    int s;
+    printf("1.Writer\n2.Reader\n3.Exit\n");
+    do{
+        printf("Select Option:\n");
+        scanf("%d",&s);
+        switch(s){
+            case 1:
+            {
+                write();
+                break;
+            }
+            case 2:
+            {
+                read();
+                break;
+            }
+            case 3:
+            {
+                printf("Exited\n");
+                exit(0);
+                break;
+            }
+        }
+    } while(s<3);
+    return 0;
+}
