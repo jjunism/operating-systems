@@ -1,0 +1,91 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+
+pthread_mutex_t mutex;
+pthread_cond_t cond_reader, cond_writer;
+
+int num_readers = 0;
+int num_writers = 0;
+
+void* reader(void* arg) {
+    pthread_mutex_lock(&mutex);
+    while (num_writers > 0) {
+        printf("Reader is waiting...\n");
+        pthread_cond_wait(&cond_reader, &mutex);
+    }
+    num_readers++;
+    pthread_mutex_unlock(&mutex);
+
+    // Reading the critical section
+    printf("Reader is reading...\n");
+
+    pthread_mutex_lock(&mutex);
+    num_readers--;
+    if (num_readers == 0) {
+        pthread_cond_signal(&cond_writer);
+    } else {
+        printf("The number of readers presently accessing the critical region excluding the requesting reader: %d\n", num_readers);
+    }
+    pthread_mutex_unlock(&mutex);
+
+    pthread_exit(NULL);
+}
+
+void* writer(void* arg) {
+    pthread_mutex_lock(&mutex);
+    while (num_readers > 0 || num_writers > 0) {
+        printf("Writer is waiting...\n");
+        pthread_cond_wait(&cond_writer, &mutex);
+    }
+    num_writers++;
+    pthread_mutex_unlock(&mutex);
+
+    // Writing to the critical section
+    printf("Writer is writing...\n");
+
+    pthread_mutex_lock(&mutex);
+    num_writers--;
+    if (num_writers == 0) {
+        if (num_readers > 0) {
+            printf("Reader is reading\n");
+            pthread_cond_broadcast(&cond_reader);
+        } else {
+            pthread_cond_signal(&cond_writer);
+        }
+    } else {
+        printf("Another Writer is writing\n");
+    }
+    pthread_mutex_unlock(&mutex);
+
+    pthread_exit(NULL);
+}
+
+int main() {
+    pthread_t th_reader[5], th_writer[3];
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&cond_reader, NULL);
+    pthread_cond_init(&cond_writer, NULL);
+
+    for (int i = 0; i < 5; i++) {
+        pthread_create(&th_reader[i], NULL, reader, NULL);
+    }
+
+    for (int i = 0; i < 3; i++) {
+        pthread_create(&th_writer[i], NULL, writer, NULL);
+    }
+
+    for (int i = 0; i < 5; i++) {
+        pthread_join(th_reader[i], NULL);
+    }
+
+    for (int i = 0; i < 3; i++) {
+        pthread_join(th_writer[i], NULL);
+    }
+
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&cond_reader);
+    pthread_cond_destroy(&cond_writer);
+
+    return 0;
+}
