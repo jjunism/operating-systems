@@ -6,7 +6,7 @@ topics:
 - shell programming
 - process management system calls
 - pages replacement
-- semaphores
+- using semaphores for reader/writer proble and producer consumer problem, 
 - schedulling algorithms
 - bankers algorithm
 - memory management 
