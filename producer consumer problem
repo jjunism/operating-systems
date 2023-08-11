@@ -1,0 +1,58 @@
+#include<stdio.h>
+#include<stdlib.h> 
+int mutex=1,full=0,empty=5,x=0; // bounded buffer empty slots are represented by ‘empty’
+int waite(int s){
+    --s;
+    return s;
+}
+int signale(int s){
+    s++;
+    return s;
+}
+void producer(){
+    mutex=waite(mutex);
+    full=signale(full);
+    empty=waite(empty);
+    x++;
+    printf("\nProducer produces the item %d",x);
+    mutex=signale(mutex);
+} 
+void consumer(){
+    mutex=waite(mutex);
+    full=waite(full);
+    empty=signale(empty);
+    printf("\nConsumer consumes item %d",x);
+    x--;
+    mutex=signale(mutex);
+}
+int main(){
+    int n;
+    void producer();
+    void consumer();
+    int waite(int);
+    int signale(int);
+    printf("\n1.Producer\n2.Consumer\n3.Exit");
+    while(1){
+        printf("\nChoose producer or consumer:");
+        scanf("%d",&n);
+        switch(n)
+        {
+            case 1: 
+		if((mutex==1)&&(empty!=0))
+                	producer();
+                else
+                        printf("Buffer is full. Producer has to wait");
+                        break;
+            case 2: 
+		if((mutex==1)&&(full!=0))
+                        consumer();
+                else
+                      	printf("Buffer is empty. Consumer has to wait\n");
+                        break;
+            case 3:
+                exit(0);
+                break;
+            }
+        }
+    return 0;
+}
